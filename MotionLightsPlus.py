@@ -73,7 +73,7 @@ class MotionLightsPlus(hass.Hass):
 
     def switch(self, entity, attribute, old, new, kwargs):
         if self.trigger == False:
-           
+
             if old == "on" and new == "off":
                 self.log('turning off motion activation')
                 self.auto = False
@@ -90,7 +90,7 @@ class MotionLightsPlus(hass.Hass):
 
     def motion(self, entity, attribute, old, new, kwargs):
         if self.auto == False: return
-        
+
         if new == "on":
             self.cancel()
             for ent in self.args["entities"]:
@@ -98,14 +98,10 @@ class MotionLightsPlus(hass.Hass):
             if "entities" in self.args:
                 self.log(f"Motion detected: turning {self.args['entities']} on")
                 self.light_on()
-       
-        if new == "off":
-            if "off_delay" in self.args:
-                delay = self.args["off_delay"]
-            else:
-                delay = 1
+
+        if new == "off" and old == 'on':
             self.cancel()
-            self.handle = self.run_in(self.light_off, delay * 60)
+            self.handle = self.run_in(self.light_off, self.args["off_delay"] * 60)
 
     def light_on(self):
         if "entities" in self.args:
@@ -116,6 +112,7 @@ class MotionLightsPlus(hass.Hass):
     def light_off(self, kwargs):
         if "entities" in self.args:
             self.log(f"Turning {self.args['entities']} off")
+            self.handle = None
             for ent in self.args["entities"]:
                 self.trigger = True
                 self.turn_off(ent)
